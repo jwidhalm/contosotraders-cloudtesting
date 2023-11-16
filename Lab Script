@@ -1,0 +1,341 @@
+Interactive tutorial: Automated cloud application testing
+25 Minutes Remaining
+Cloud testing tools demo app
+Log In to the Virtual Machine
+Contoso Traders is a sample application showcasing Playwright, Azure Load Testing, Azure Chaos Studio and more.
+
+After Ignite, you can continue with the Contoso Traders sample app here.
+
+Steps
+Log into the lab VM: Click on the Resources tab in this sidebar at the top, click on Password in the grey box, then press the right arrow for enter:
+
+login.png
+
+Open Edge inside the virtual machine and navigate to https://github.com/microsoft/contosotraders-cloudtesting (first bookmark on the left)
+
+Log in to GitHub.
+
+Fork the repository:
+
+fork.png
+
+Set up the repository secrets in your forked repo. On your fork of the github repository, go to the Settings tab > Secrets and variables > Actions > Secrets tab and create these necessary repository secrets:
+
+NOTE: The clientId, clientSecret and tenantId values are not present in the below block, select the button below to create a new Service Principal and populate the below values.
+
+Tip: You can click on the T icon and it gets automatically typed inside the VM
+
+Name: SQLPASSWORD
+
+Value: eJ0rSa!D2!
+Name: SERVICEPRINCIPAL
+
+Copy and paste the entire snipppet below (including brackets) for the value:
+{
+    "clientId": "fa273f36-66a4-4a15-9b58-c2140e065159",
+    "clientSecret": "31cdf22d-82aa-48ad-be39-53b37acc2aeb",
+    "tenantId": "4cfe372a-37a4-44f8-91b2-5faf34253c62",
+    "subscriptionId": "412842ee-5226-4093-88f0-beb0970c3dc4"
+}
+Set up the repository variables in your forked repo. On your fork of the github repository, go to the Settings tab > Secrets and variables > Actions > Variables tab and create these 2 variables:
+
+Name: SUFFIX
+
+Value: 586505
+
+Name: DEPLOYMENTREGION
+
+Value: eastus2
+
+On your fork of the github repository, go to the Actions tab > contoso-traders-cloud-testing. You will be prompted to enable workflows on the fork. Click "I understand my workflows, go ahead and enable them."
+
+Run the workflow using the main branch: run.png
+
+This will take ~15 minutes to run. You can move on to the next portion of the lab in the meantime. There is a possibility for transient failures; if it fails, click "Re-run failed jobs": re-run.png
+
+Playwright
+Reliable end-to-end testing and cross browser automation for modern web applications.
+
+Click the "Open Playwright tests" icon on the Desktop, which opens the contosotraders tests in Visual Studio Code. Playwright has a Visual Studio Code extension which allows you to create a project, write tests using Codegen and run them directly via the green triangle ▶. It allows you to re-use the browser as well between different test runs to easily spot bugs or see how the website behaved when a test was failing. You can see all your test files in VS Code by clicking on the testing sidebar.
+We open UI Mode by entering in the Terminal npx playwright test --ui which will spawn an interactive way of running tests and seeing in real time what was happening on the page. It also gives you the powerful feature of watch mode, which you can enable in the sidebar via the watch icon. Then once you make a change in VSCode, the test will automatically run.
+Since writing tests is crucial, we developed Codegen, a test generator which will convert all the manual steps you do inside a browser into Playwright API calls and a test case. You can open it via the VSCode testing sidebar, under the Playwright section "Record new". Once you are done you can stop Codegen in VSCode and run the test. Either via VSCode or UI mode, you decide!
+Make sure to Star Playwright on GitHub. For questions we recommend our community on Discord or GitHub Discussions or follow our video/conference content on YouTube.
+Azure Load Testing Lab
+Azure Load Testing is a fully managed load-testing service that enables you to generate high-scale load. The service simulates traffic for your applications, regardless of where they're hosted. Developers, testers, and quality assurance (QA) engineers can use it to optimize application performance, scalability, or capacity.
+
+In our Azure Load Testing Lab, we will cover three main scenarios:
+
+Creating a Load Test
+How to use GitHub Actions for load testing in your CI/CD pipeline.
+Creating a Load Test
+Login to Azure Portal
+Open Edge browser inside the virtual machine and navigate to https://portal.Azure.com
+
+Login using the information in your lab Resource tab
+
+Identify Load Test target url
+In the Azure portal, navigate to the contoso-traders-rg586505 resource group. Look for the contoso-traders-cartsct-prod resource which is Container App type. This is the Container App that hosts the Carts API.
+
+ContosoTraders-RG-Carts.png
+
+Open the Carts API resource, and copy the [Azure Container App URL].
+
+ContosoTraders-CartsCTProd-AppURL.png
+
+In a seperate browser, enter the copied url in the address bar to load the API's swagger page: [Azure Container App URL]/swagger/index.html
+
+ContosoTradersAPICartsSwagger.png
+
+You can now identify the API that you want to load test. For this lab, we will be load testing the Carts API's GET [Azure App Container URL]/v1/ShoppingCart/loadtest endpoint.
+
+CartsSwaggerGetURL.png
+
+Please copy the LoadTest endpoint url as you will paste it next into our Load Test.
+
+Create Load Test
+Navigate back to the contoso-traders-rg586505 resource group. Locate the contoso-traders-loadtest586505 resource which is Azure Load Testing type and open this resource.
+
+ContosoTradersRG-LoadTestProd resource.png
+
+Navigate to the Tests section and then click on Create and select Create a URL-based test
+
+!IMAGE[load-test-create-1.png
+
+In the Basics blade, you now paste the Carts API's GET [Azure App Container URL]/v1/ShoppingCart/loadtest endpoint which you copied in step 5 above. You can also specify the number of concurrent users, and the duration of the test. Let's leverage the defaults of Number of virtual users and enter 50 and Test duration (seconds) of 120.
+
+load-test-create-2.png
+
+Notice that Azure Load Testing ramp up time can also be added.
+More info: The ramp-up time is the amount of time to get to the full number of virtual users for the load test. If the number of virtual users is 5, and the ramp-up time is 30 seconds, then it will take 30 seconds to get to all 5 virtual users. Each virtual user will start 6 (30/5) seconds after the previous user was started.
+
+Alternatively, you can specify your Load Test by Requests per Second (RPS), simply select the Requests per Second option.
+
+Running the Load Test
+Once you've entered the load test specifications, select Run Test
+
+TestRunProvisioning.png
+
+The Load Test will take about 2 minutes to complete. Once done, it will display a Summary of the test run along with client-side metrics.
+
+TestRunSummaryClientSideMetrics.png
+
+View Server Side metrics
+Click on the App Components button. Then from the flyout, select the contoso-traders-carts586505 CosmosDB component. This will add relevant metrics from the CosmosDB to the load test dashboard.
+
+ConfigureAppComponents.png
+
+Re-run the load test, and you'll see the impact of the synthetic load on the DB (in real-time).
+
+LoadTestSummaryServerSideMetrics.png
+
+Export the JMX File and Test Results
+Navigate back to the Load Testing service, and click on the recently concluded test run. From there you can click on Download > Input File. This will download the JMX file in a zip archive.
+
+ALT-ExportJMXFile.png
+
+You can review the JMX file by simply loading it up in notepad or VSCode.
+
+JMXCodeSnippet.png
+
+The load test results can also be downloaded via in the Download > Results button. This will download a CSV file (inside a zip archive).
+
+ALT-DownloadResults.png
+
+You can then view these results in Excel and/or import into your own developer dashboards
+
+ALT-ExportResultsExcel.png
+
+Identify application's breakpoints
+Let us now modify the existing load test. We'll use it to put the application under increasing load, ultimately leading to failure. The goal is to identify the application's breakpoints (performance bottlenecks).
+
+ALT-IdentifyAppBreakpoints.png
+
+Modify the existing test configuration as follows:
+
+Increase the number of concurrent users to 250 (from original 50).
+Change the test duration to 300 seconds (from original 120 seconds)
+Change the ramp-up time to 300 seconds (from original 120 seconds).
+ALT-IncreaseLoadTestParameters.png
+
+Increase the number of engine instances to 2 (from original 1).
+
+ALT-IncreaseNumberofTestEngineInstances.png
+
+Run the modified load test. You'll notice that the application starts to eventually fail under the increased load.
+
+ALT-TestRunErrors.png
+
+If you add the server-side metrics for the contoso-traders-carts586505 CosmosDB, you'll notice that the DB's normalized RU consumption eventually starts to peg at 100% under load.
+
+ALT-BreakpointCosmosDB-RUConsumptionPegged.png
+
+App Insights can help us narrow down the root cause of the error. Navigate to the contoso-traders-rg586505 resource group, and click on the contoso-traders-ai586505 resource.
+
+ALT-BreakpointAppInsightsResource.png
+
+In the App Insights blade, click on the Failures tab. Narrow down the time range to (say) the last 30 minutes. You'll see the listed failures (sampled by App Insights) that occurred during the load test.
+
+ALT-BreakpointAppInsightsBladeView.png
+
+Clicking on any one sample will give you a detailed view of the error (including stack trace in case of an exception). In this case, the error is a 500 error, caused by a TaskCanceledException (due to a gateway timeout in CosmosDB). This is a good indication that the application is failing due to a performance bottleneck.
+
+ALT-BreakpointAppInsightsDetailedView.png
+
+Regression Testing with Load Testing GitHub Action
+We have a GitHub workflow that executes load tests on the application's APIs. This workflow is automatically triggered on every checkin to the main branch. Specifically the load tests are run on the Product API and Carts API immediately after they're deployed to the AKS cluster and ACA respectively. This will help identify if any code (or infra) change causes the application performance to degrade under (simulated) load.
+
+ALT-GHAOverview.png
+
+The workflow uses a github action to invoke the Azure Load Testing service and simulate load on the application's Product API and Carts API, which are hosted on AKS and ACA respectively.
+
+ALT-GHALoadTestingAction.png
+
+The workflow file references a load test configuration file (yml), which specifies the following:
+
+The load test parameters.
+The JMX/JMeter script to be used.
+The pass/fail criteria for the test.
+See an example of a load test configuration file below. ALT-GHAYMLSnippet.png
+
+The load test takes about 3 minutes to execute. In this specific example, you can see that the load test failed since the average response time exceeded the specified threshold of 5000ms.
+
+ALT-GHALoadTestActionFailed.png
+
+Once done, you can navigate to the Azure Portal to get more in-depth details about the test.
+
+ALT-GHALoadTestDetails.png
+
+Chaos Studio Lab
+Azure Chaos Studio allows you to create and run chaos experiments on your application's infrastructure. By deliberately introducing faults that simulate real-world outages, you can test your application's resiliency and identify potential issues before they impact your customers."
+
+Introduction
+In this lab, you'll get an overview of the Azure Chaos Studio service; a managed service that can be used to simulate faults on your application's infrastructure.
+
+Running Chaos Experiments to introduce faults in Azure Key Vault (deny access) and viewing its impact on the application.
+Running Chaos Experiments via GitHub Workflows.
+Identify the target for your Chaos experiment
+For this lab, the target of our Chaos experiment will be Key Vault.
+
+In the Azure portal, you can navigate to the Azure Chaos Studio service from the search bar as follows.
+
+CS-NavigatetoChaosStudio.png
+
+Next, click on the Target tab and filter down to the contoso-traders-rg586505 resource group.
+
+CS_SelectTargets.png
+
+Next, go to the contosotraderskv586505 key vault resource, and click on the Manage actions button.
+
+CS_KVManageActions.png
+
+Notice that the "Key Vault Deny Access" fault will be being injected in the key vault when the chaos experiment is run. This fault will prevent the application from accessing the key vault, leading the application to fail.
+
+CS-KeyVaultDenyAccess.png
+
+Review the Chaos Experiment
+In the Chaos Studio, click on the Experiment tab and click on the contoso-traders-chaos-kv-experiment586505 experiment.
+
+CS-chaosKVExperiment.png
+
+Click on the experiment's Edit button to review the experiment's configuration.
+
+CS-KVExperimentEdit.png
+
+Click on the Action's Edit button to review the experiment's configuration.
+
+CS-chaosEditAction.png
+
+Notice that the experiment is configured to run on the the contosotraderskv586505 key vault resource for 5 minutes.
+
+CS-KVDenyAccess5minutes.png
+
+For the duration of the experiment, the Key Vault Deny Access fault will be injected into the key vault (i.e. the key vault will not be accessible even to principals mentioned in its access policies).
+
+CS-ExperimentTargetResource.png
+
+Run the Chaos Experiment
+Before starting the experiment, you can verify that the application is working as expected by navigating to the application's URL (https://contoso-traders-ui2586505.azureedge.net) and clicking on any product category (e.g. laptops). The application should load the product category page successfully by fetching data from the API.
+
+CS-Verifyworking.png
+
+Next, navigate to the Chaos Studio and click on the Experiment tab. Click on the contoso-traders-chaos-kv-experiment586505 experiment and click on the Start button.
+
+CS-StartExperiment.png
+
+CS-OKStartExperiment.png
+
+The experiment is now underway and during the course of the experiment, the key vault will not be accessible.
+
+CS_ExperimentStarting.png
+
+CS-ExperimentRunningBranchView.png
+
+Exposing resiliency issues in application
+The application's Products API follows the externalized configuration pattern, wherein upon startup, the API fetches DB connection strings, passwords etc from Azure key vault. The API then uses the connection string to connect to its product catalog db. If the key vault is not accessible, the API will fail to fetch the connection string and will fail to start.
+
+CS_ViewAPIcode.png
+
+Let us force the API to restart (note: upon restarting, it'll attempt to connect to the key vault to fetch the connection string).
+
+CS-ForceAPIRestart.png
+
+We can do by simply deleting the API's pod. The AKS deployment will then recreate the pod and the API will restart.
+
+CS_deleteAKSPod.png
+
+As soon as the new pod is created, the API will attempt to connect to the key vault to fetch the connection string. Since the key vault is not accessible, the API will fail to start.
+
+CS_ErroronReconnect.png
+
+You can verify that the application is not working as expected by navigating to the application's URL and clicking on any product category (e.g. laptops). The application should fail to load the product category page.
+
+CS-AppViewNotWorking.png
+
+After the Chaos Experiment ends
+After the 5 minutes are up, the experiment will end and the key vault will be accessible again.
+
+CS-ExperimentEnds.png
+
+AKS's deployment ensures that the API will automatically restarted on crashes (with exponential back-off applied). Once the chaos experiment ends, the key vault will be accessible again. When AKS restarts the pod after this, the API will be able to connect to the key vault and will start successfully.
+
+CS-AKSDeploymentRestarts.png
+
+We can now verify our application is working again
+
+CS-AppWorkingAgain.png
+
+Running Chaos Experiment via GitHub Workflows
+We have a Chaos Experiment contoso-traders-chaos-aks-experiment586505 that injects faults (pod failures) into the AKS cluster: contoso-traders-aks586505 for a duration of 5 mins.
+
+CS-GHAChaosAKSExperiment.png
+
+Internally, this experiment leverages Chaos Mesh, a CNCF project that orchestrates fault injection on Kubernetes environments (e.g. network latency, pod failures, and even node failures).
+
+CS-GHAExperimentAKSChaosMesh.png
+
+The github workflow contoso-traders-cloud-testing.yml triggers the AKS chaos experiment (pod failures), while simultaneously running a load test against the same AKS cluster.
+
+CS-GHAYMLFlowCLI.png
+
+Thank You for participating in this lab!
+Troubleshooting Deployment Failures
+Incorrect GitHub Actions secrets.
+
+SERVICEPRINCIPAL: provision job will fail on Azure Login step.
+
+Are brackets included when copy/pasting? Update the secret and queue a new run (re-running won't apply the variable update).
+SQLPASSWORD: provision job will fail on "create resources" step on pre-deployment validation.
+
+It will look something like this:
+"details":[***"code":"InvalidParameter","target":"adminPassword","message":"The supplied password must be between 8-123 characters long and must satisfy at least 3 of password complexity requirements from the following:\r\n1) Contains an uppercase character\r\n2) Contains a lowercase character\r\n3) Contains a numeric digit\r\n4) Contains a special character\r\n5) Control characters are not allowed"***
+Note: It must be 8 to 15 characters long, must contain uppercase, lowercase, and numeric characters. Update the secret and queue a new run (re-running won't apply the variable update).
+
+Transient issues.
+
+In this case, Re-run the failed jobs.
+
+Examples:
+
+Message: We are unable to serve this request due to an internal error.
+App Service is attempting to increase capacity. Please retry your request later.
+Live Chat
